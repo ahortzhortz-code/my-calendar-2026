@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บอร์ดแจ้งเตือน โพสต์วันสำคัญประจำปี 2569</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Sarabun', sans-serif;
+        }
+        
+        /* ซ่อน Scrollbar */
+        .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .hide-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-slate-50 text-gray-800 p-4 md:p-8">
+
+    <div id="app" class="max-w-5xl mx-auto">
+        </div>
+
+    <div id="modal-container"></div>
+
+    <script>
+        // ข้อมูลเริ่มต้น
+        const initialTasks = [
+            { id: 1, rawDateText: 'วันพุธที่ 8 ม.ค.', title: 'ถวายพระพร พระองค์เจ้าฟ้าหญิงสิริวัณณวรีฯ', date: '2026-01-08', done: false },
+            { id: 2, rawDateText: 'วันอังคารที่ 17 ก.พ.', title: 'Banner ตรุษจีน อวยพรลูกค้า', date: '2026-02-17', done: false },
+            { id: 3, rawDateText: 'วันพฤหัสบดีที่ 2 เม.ย.', title: 'ถวายพระพร สมเด็จพระเทพฯ', date: '2026-04-02', done: false },
+            { id: 4, rawDateText: 'วันอาทิตย์ที่ 5 เม.ย.', title: 'ถวายพระพร ทูลกระหม่อมหญิงอุบลรัตนฯ', date: '2026-04-05', done: false },
+            { id: 5, rawDateText: 'วันเสาร์ที่ 11 - วันพุธที่ 15 เม.ย.', title: 'แจ้งประกาศ วันหยุดสงกรานต์', date: '2026-04-11', endDate: '2026-04-15', done: false },
+            { id: 6, rawDateText: 'วันพุธที่ 29 เม.ย.', title: 'ถวายพระพร เจ้าฟ้าทีปังกรรัศมีโชติ', date: '2026-04-29', done: false },
+            { id: 7, rawDateText: 'วันศุกร์ที่ 1 - วันจันทร์ที่ 4 พ.ค.', title: 'แจ้งประกาศ วันหยุดวันแรงงานและวันฉัตรมงคล', date: '2026-05-01', endDate: '2026-05-04', done: false },
+            { id: 8, rawDateText: 'วันจันทร์ที่ 4 พ.ค.', title: 'Banner วันฉัตรมงคล', date: '2026-05-04', done: false },
+            { id: 9, rawDateText: 'วันอังคารที่ 5 พ.ค.', title: 'ถวายพระพร พระองค์เจ้าอทิตยาทรกิติคุณ', date: '2026-05-05', done: false },
+            { id: 10, rawDateText: 'วันพุธที่ 3 มิ.ย.', title: 'ถวายพระพร สมเด็จพระนางเจ้าสุทิดาฯ พระบรมราชินี', date: '2026-06-03', done: false },
+            { id: 11, rawDateText: 'วันพุธที่ 3 มิ.ย.', title: 'แจ้งประกาศ วันหยุดวันเฉลิมฯ พระราชินี', date: '2026-06-03', done: false },
+            { id: 12, rawDateText: 'วันศุกร์ที่ 26 มิ.ย.', title: 'ถวายพระพร สมเด็จพระสังฆราช', date: '2026-06-26', done: false },
+            { id: 13, rawDateText: 'วันเสาร์ที่ 4 ก.ค.', title: 'ถวายพระพร เจ้าฟ้าหญิงจุฬาภรณฯ', date: '2026-07-04', done: false },
+            { id: 14, rawDateText: 'วันจันทร์ที่ 13 ก.ค.', title: 'ถวายพระพร พระองค์โสมสวลี', date: '2026-07-13', done: false },
+            { id: 15, rawDateText: 'วันเสาร์ที่ 18 ก.ค.', title: 'ถวายพระพร สมเด็จย่า', date: '2026-07-18', done: false },
+            { id: 16, rawDateText: 'วันอังคารที่ 28 ก.ค.', title: 'ถวายพระพร สมเด็จพระเจ้าอยู่หัวฯ', date: '2026-07-28', done: false },
+            { id: 17, rawDateText: 'วันอังคารที่ 28 ก.ค.', title: 'แจ้งประกาศ วันหยุดวันเฉลิมฯ พระเจ้าอยู่หัว', date: '2026-07-28', done: false },
+            { id: 18, rawDateText: 'วันพุธที่ 12 ส.ค.', title: 'ถวายพระพร สมเด็จพระนางเจ้าสิริกิติ์', date: '2026-08-12', done: false },
+            { id: 19, rawDateText: 'วันพุธที่ 12 ส.ค.', title: 'แจ้งประกาศ วันหยุดวันแม่แห่งชาติ', date: '2026-08-12', done: false },
+            { id: 20, rawDateText: 'วันจันทร์ที่ 28 ก.ย.', title: 'Banner วันพระราชทานธงชาติไทย', date: '2026-09-28', done: false },
+            { id: 21, rawDateText: 'วันพฤหัสบดีที่ 8 ต.ค.', title: 'ถวายพระพร พระองค์เจ้าสิริภาจุฑาภรณ์', date: '2026-10-08', done: false },
+            { id: 22, rawDateText: 'วันอังคารที่ 13 ต.ค.', title: 'ถวายพระพร วันคล้ายวันสวรรคต ร.9', date: '2026-10-13', done: false },
+            { id: 23, rawDateText: 'วันศุกร์ที่ 23 ต.ค.', title: 'ถวายพระพร วันปิยมหาราช ร.5', date: '2026-10-23', done: false },
+            { id: 24, rawDateText: 'วันศุกร์ที่ 23 ต.ค.', title: 'แจ้งประกาศ วันหยุดปิยมหาราช', date: '2026-10-23', done: false },
+            { id: 25, rawDateText: 'วันเสาร์ที่ 24 ต.ค.', title: 'ถวายพระพร วันคล้ายวันสวรรคต พระพันปีหลวง', date: '2026-10-24', done: false },
+            { id: 26, rawDateText: 'วันเสาร์ที่ 21 พ.ย.', title: 'แจ้งประกาศ วันหยุดท่องเที่ยวประจำปี', date: '2026-11-21', done: false },
+            { id: 27, rawDateText: 'วันเสาร์ที่ 5 ธ.ค.', title: 'ถวายพระพร วันคล้ายวันเฉลิมพระชนมฯ ร.9', date: '2026-12-05', done: false },
+            { id: 28, rawDateText: 'วันเสาร์ที่ 5 ธ.ค.', title: 'แจ้งประกาศ วันหยุดวันพ่อแห่งชาติ', date: '2026-12-05', done: false },
+            { id: 29, rawDateText: 'วันจันทร์ที่ 7 ธ.ค.', title: 'ถวายพระพร พระองค์เจ้าพัชรกิติยาภา', date: '2026-12-07', done: false },
+            { id: 30, rawDateText: 'วันศุกร์ที่ 25 ธ.ค.', title: 'Banner merry christmas and happy new year อวยพรลูกค้า', date: '2026-12-25', done: false },
+            { id: 31, rawDateText: 'วันอังคารที่ 29 - วันพฤหัสบดีที่ 31 ธ.ค.', title: 'แจ้งประกาศ วันหยุดปีใหม่', date: '2026-12-29', endDate: '2026-12-31', done: false },
+        ];
+
+        const THAI_MONTHS = [
+            'มกราคม', 'กุมภาพันธ์', 'มีนาคม', 'เมษายน', 'พฤษภาคม', 'มิถุนายน',
+            'กรกฎาคม', 'สิงหาคม', 'กันยายน', 'ตุลาคม', 'พฤศจิกายน', 'ธันวาคม'
+        ];
+
+        // State Management
+        let tasks = [...initialTasks];
+        let view = 'table';
+        let currentYear = 2026;
+        let currentMonth = 0;
+        let selectedDateTasks = null;
+
+        // ฟังก์ชันช่วยจัดการ UI
+        const getTaskTypeStyle = (title) => {
+            if (title.includes('ถวายพระพร')) return 'bg-amber-100 text-amber-800 border-amber-200';
+            if (title.includes('แจ้งประกาศ')) return 'bg-sky-100 text-sky-800 border-sky-200';
+            if (title.includes('Banner')) return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+            return 'bg-slate-100 text-slate-800 border-slate-200';
+        };
+
+        const isTaskOnDate = (task, dateStr) => {
+            if (task.endDate) {
+                return dateStr >= task.date && dateStr <= task.endDate;
+            }
+            return dateStr === task.date;
+        };
+
+        // Actions
+        window.toggleTask = (id) => {
+            tasks = tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
+            
+            // อัปเดต State ใน Modal ถ้ากำลังเปิดอยู่
+            if (selectedDateTasks) {
+                selectedDateTasks.tasks = selectedDateTasks.tasks.map(t => t.id === id ? { ...t, done: !t.done } : t);
+            }
+            
+            render();
+        };
+
+        window.setView = (newView) => {
+            view = newView;
+            render();
+        };
+
+        window.prevMonth = () => {
+            if (currentMonth === 0) {
+                currentYear -= 1;
+                currentMonth = 11;
+            } else {
+                currentMonth -= 1;
+            }
+            render();
+        };
+
+        window.nextMonth = () => {
+            if (currentMonth === 11) {
+                currentYear += 1;
+                currentMonth = 0;
+            } else {
+                currentMonth += 1;
+            }
+            render();
+        };
+
+        window.openModal = (dayNum, dateStr) => {
+            const dayTasks = tasks.filter(t => isTaskOnDate(t, dateStr));
+            if (dayTasks.length > 0) {
+                selectedDateTasks = { date: dateStr, tasks: dayTasks, dayNum: dayNum };
+                render();
+            }
+        };
+
+        window.closeModal = () => {
+            selectedDateTasks = null;
+            render();
+        };
+
+        // Render Functions
+        const renderHeader = (completedCount, progressPercent) => `
+            <div class="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-200">
+                <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div>
+                        <h1 class="text-2xl font-bold text-slate-800">📌 บอร์ดแจ้งเตือน โพสต์วันสำคัญประจำปี 2569</h1>
+                        <p class="text-slate-500 mt-1">ติดตามรายการคอนเทนต์และวันหยุดตลอดทั้งปี</p>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-lg border border-slate-100 min-w-[200px]">
+                        <div class="flex justify-between text-sm mb-2 font-medium">
+                            <span class="text-slate-600">ความคืบหน้า</span>
+                            <span class="text-blue-600">${completedCount} / ${tasks.length}</span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2.5">
+                            <div class="bg-blue-600 h-2.5 rounded-full transition-all duration-500" style="width: ${progressPercent}%"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4 flex items-center gap-2 text-amber-700 bg-amber-50 p-3 rounded-lg text-sm border border-amber-100">
+                    <i data-lucide="info" class="w-[18px] h-[18px]"></i>
+                    <span class="font-medium">หมายเหตุจากไฟล์: ***ตัดคลิปท่องเที่ยวบริษัท คลิปยาวประมาณ 20 นาที***</span>
+                </div>
+            </div>
+        `;
+
+        const renderTabs = () => `
+            <div class="flex gap-2 mb-6 border-b border-gray-200 pb-px">
+                <button onclick="setView('table')" class="flex items-center gap-2 px-4 py-2.5 font-medium text-sm transition-colors relative top-[1px] ${view === 'table' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-800'}">
+                    <i data-lucide="list" class="w-[18px] h-[18px]"></i> รายการทั้งหมด
+                </button>
+                <button onclick="setView('calendar')" class="flex items-center gap-2 px-4 py-2.5 font-medium text-sm transition-colors relative top-[1px] ${view === 'calendar' ? 'text-blue-600 border-b-2 border-blue-600' : 'text-gray-500 hover:text-gray-800'}">
+                    <i data-lucide="calendar" class="w-[18px] h-[18px]"></i> ปฏิทิน 2569
+                </button>
+            </div>
+        `;
+
+        const renderTableView = () => `
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 border-b border-gray-200">
+                                <th class="py-3 px-4 font-semibold text-gray-600 text-center w-16">No.</th>
+                                <th class="py-3 px-4 font-semibold text-gray-600 w-48">วันที่</th>
+                                <th class="py-3 px-4 font-semibold text-gray-600">รายละเอียดโพสต์</th>
+                                <th class="py-3 px-4 font-semibold text-gray-600 text-center w-32">ทำแล้ว</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            ${tasks.map(task => `
+                                <tr class="hover:bg-blue-50/50 transition-colors ${task.done ? 'bg-gray-50' : 'bg-white'}">
+                                    <td class="py-3 px-4 text-center text-gray-500">${task.id}</td>
+                                    <td class="py-3 px-4 font-medium text-gray-700 text-sm">${task.rawDateText}</td>
+                                    <td class="py-3 px-4">
+                                        <div class="flex items-center gap-2 flex-wrap">
+                                            <span class="inline-block px-2 py-1 rounded text-xs font-medium border ${getTaskTypeStyle(task.title)} ${task.done ? 'opacity-60' : ''}">
+                                                ${task.title.split(' ')[0]}
+                                            </span>
+                                            <span class="${task.done ? 'text-gray-400 line-through' : 'text-gray-800'}">
+                                                ${task.title}
+                                            </span>
+                                        </div>
+                                    </td>
+                                    <td class="py-3 px-4 text-center cursor-pointer" onclick="toggleTask(${task.id})">
+                                        <div class="flex justify-center">
+                                            ${task.done ? 
+                                                '<i data-lucide="check-square" class="text-emerald-500 w-6 h-6"></i>' : 
+                                                '<i data-lucide="square" class="text-gray-300 hover:text-blue-400 w-6 h-6 transition-colors"></i>'
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        `;
+
+        const renderCalendarView = () => {
+            const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
+            const firstDay = new Date(currentYear, currentMonth, 1).getDay();
+            
+            let daysHtml = '';
+            
+            // ช่องว่างก่อนวันแรกของเดือน
+            for (let i = 0; i < firstDay; i++) {
+                daysHtml += `<div class="h-24 bg-gray-50 border border-gray-100"></div>`;
+            }
+
+            // วันที่ในเดือน
+            for (let d = 1; d <= daysInMonth; d++) {
+                const dayStr = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const dayTasks = tasks.filter(t => isTaskOnDate(t, dayStr));
+                const isToday = new Date().toISOString().split('T')[0] === dayStr;
+
+                let taskHtml = dayTasks.map(t => `
+                    <div class="text-[10px] leading-tight p-1 rounded border ${getTaskTypeStyle(t.title)} ${t.done ? 'opacity-50 line-through' : ''}">
+                        ${t.title.length > 20 ? t.title.substring(0, 20) + '...' : t.title}
+                    </div>
+                `).join('');
+
+                daysHtml += `
+                    <div onclick="openModal(${d}, '${dayStr}')" class="h-24 flex flex-col border border-gray-200 p-1 relative transition-colors ${dayTasks.length > 0 ? 'bg-white cursor-pointer hover:bg-gray-50' : 'bg-gray-50'}">
+                        <span class="text-sm font-medium p-1 w-7 h-7 flex items-center justify-center rounded-full ${isToday ? 'bg-blue-600 text-white' : 'text-gray-700'}">
+                            ${d}
+                        </span>
+                        <div class="flex-1 overflow-y-auto mt-1 space-y-1 hide-scrollbar">
+                            ${taskHtml}
+                        </div>
+                    </div>
+                `;
+            }
+
+            return `
+                <div class="bg-white rounded-lg shadow mt-4 p-4">
+                    <div class="flex items-center justify-between mb-4">
+                        <button onclick="prevMonth()" class="p-2 rounded-full hover:bg-gray-100 text-gray-600">
+                            <i data-lucide="chevron-left"></i>
+                        </button>
+                        <h2 class="text-xl font-bold text-gray-800">
+                            ${THAI_MONTHS[currentMonth]} ${currentYear + 543}
+                        </h2>
+                        <button onclick="nextMonth()" class="p-2 rounded-full hover:bg-gray-100 text-gray-600">
+                            <i data-lucide="chevron-right"></i>
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-7 gap-0 text-center mb-2">
+                        ${['อา', 'จ', 'อ', 'พ', 'พฤ', 'ศ', 'ส'].map((day, idx) => `
+                            <div class="font-semibold text-sm ${idx === 0 || idx === 6 ? 'text-rose-500' : 'text-gray-600'}">${day}</div>
+                        `).join('')}
+                    </div>
+                    <div class="grid grid-cols-7 gap-0 rounded-lg overflow-hidden border-t border-l border-gray-200">
+                        ${daysHtml}
+                    </div>
+                </div>
+            `;
+        };
+
+        const renderModal = () => {
+            if (!selectedDateTasks) return '';
+
+            return `
+                <div class="fixed inset-0 bg-black/40 flex items-center justify-center p-4 z-50 transition-opacity">
+                    <div class="bg-white rounded-xl shadow-xl w-full max-w-md overflow-hidden">
+                        <div class="p-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                            <h3 class="font-bold text-lg text-gray-800 flex items-center gap-2">
+                                <i data-lucide="calendar" class="text-blue-600 w-5 h-5"></i>
+                                วันที่ ${selectedDateTasks.dayNum} ${THAI_MONTHS[currentMonth]} ${currentYear + 543}
+                            </h3>
+                            <button onclick="closeModal()" class="text-gray-400 hover:text-gray-700 p-1 font-bold text-xl leading-none">&times;</button>
+                        </div>
+                        <div class="p-4 space-y-3 max-h-[60vh] overflow-y-auto">
+                            ${selectedDateTasks.tasks.map(task => `
+                                <div onclick="toggleTask(${task.id})" class="p-3 rounded-lg border cursor-pointer transition-all ${task.done ? 'bg-gray-50 border-gray-200 opacity-70' : 'bg-white border-blue-100 hover:border-blue-300 hover:shadow-sm'}">
+                                    <div class="flex items-start gap-3">
+                                        <div class="mt-1">
+                                            ${task.done ? 
+                                                '<i data-lucide="check-square" class="text-emerald-500 w-5 h-5"></i>' : 
+                                                '<i data-lucide="square" class="text-gray-300 w-5 h-5"></i>'
+                                            }
+                                        </div>
+                                        <div>
+                                            <p class="font-medium ${task.done ? 'line-through text-gray-500' : 'text-gray-800'}">
+                                                ${task.title}
+                                            </p>
+                                            <p class="text-sm text-gray-500 mt-1">${task.rawDateText}</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                </div>
+            `;
+        };
+
+        // Main Render Function
+        const render = () => {
+            const completedCount = tasks.filter(t => t.done).length;
+            const progressPercent = Math.round((completedCount / tasks.length) * 100);
+
+            // Render หลัก
+            document.getElementById('app').innerHTML = `
+                ${renderHeader(completedCount, progressPercent)}
+                ${renderTabs()}
+                ${view === 'table' ? renderTableView() : renderCalendarView()}
+            `;
+
+            // Render Modal
+            document.getElementById('modal-container').innerHTML = renderModal();
+
+            // สั่งให้ Lucide โหลดไอคอนใหม่ตาม HTML ที่เพิ่งอัปเดตเข้าไป
+            lucide.createIcons();
+        };
+
+        // Render ครั้งแรกเมื่อโหลดหน้าเว็บ
+        render();
+
+    </script>
+</body>
+</html>
